@@ -1,6 +1,6 @@
 # SliderLaunch
 ![preview](Image/prog.png)
-Select and launch games with your controller of choice. Works with all devices supported by slidershim.
+Select and launch a list of games from an ini file with your controller of choice. Works with all devices supported by slidershim.
 
 # Requirements
 - [Python](https://www.python.org/downloads/)
