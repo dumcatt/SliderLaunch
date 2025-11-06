@@ -8,11 +8,10 @@ Select and launch a list of games from an ini file with your controller of choic
 - [PyWin32api](https://pypi.org/project/pywin32/)
 - [slidershim](https://github.com/4yn/slidershim)
 
-
-
+# Configuration
+If you didn't use slidershim's MSI installer, the path to slidershim can be changed on `slidershim_path` in `launcher.py`
+The amount of time before it automatically launches the game can also be configured on `AUTO_LAUNCH_DELAY` in the same file.
 
 # Slidershim Setup
-Slidershim should be installed to `C:\Program Files\slidershim` if you used the MSI installer, or you can edit the slidershim path in the python code.
-
 ![Configuration](Image/slidershim_cfg.png)  
 Change "Input Device" to the controller that you are using and change "Output Mode" to "Keyboard 16-zone, Linear"
