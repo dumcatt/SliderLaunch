@@ -69,32 +69,78 @@ def launch_program(path, slidershim_process_to_terminate):
     except Exception as e:
         print(f"Error launching '{path}': {e}")
         return True
+
 def draw_menu(surface, options, selected, idle_time_ms, is_timer_active):
     surface.blit(background_image, (0, 0))
-
 
     title_surface = font.render(title_text, True, white)
     title_rect = title_surface.get_rect(center=(screen_width / 2, 80))
     surface.blit(title_surface, title_rect)
 
+    # --- SCROLLING & LAYOUT CONFIGURATION ---
     start_y = 180
     start_x = 250
     line_spacing = 28
-    for i, option in enumerate(options):
-        display_text = f">> {option}" if i == selected else f"   {option}"
-        text_surface = font.render(display_text, True, white)
-        current_y = start_y + i * line_spacing
-        text_rect = text_surface.get_rect(topleft=(start_x, current_y))
-        surface.blit(text_surface, text_rect)
-        
+    max_visible = 25  # Maximum number of items to show on screen at once
+    
+    # Scrollbar visual settings
+    scrollbar_x = start_x - 30      # 30 pixels to the left of the text
+    scrollbar_width = 8             # Thickness of the scrollbar
+    track_color = (50, 50, 50)      # Dark gray for the background track
+    thumb_color = (200, 200, 200)   # Light gray for the moving indicator
+    # ----------------------------------------
 
+    total_items = len(options)
+
+    # Calculate the scroll offset to keep the selected item visible
+    offset = 0
+    if selected >= max_visible:
+        offset = selected - (max_visible - 1)
+
+    # --- NEW: Draw the Scrollbar ---
+    if total_items > max_visible:
+        # 1. Draw the background track
+        scrollbar_total_height = max_visible * line_spacing
+        track_rect = pygame.Rect(scrollbar_x, start_y, scrollbar_width, scrollbar_total_height)
+        pygame.draw.rect(surface, track_color, track_rect)
+        
+        # 2. Calculate thumb height (proportional to visible items)
+        # Ensure it never gets smaller than 20 pixels so it's always visible
+        thumb_height = max(20, (max_visible / total_items) * scrollbar_total_height)
+        
+        # 3. Calculate thumb position based on scroll progress
+        max_offset = total_items - max_visible
+        scroll_percent = offset / max_offset
+        
+        # The thumb's Y position moves down the track based on percentage
+        thumb_y = start_y + (scroll_percent * (scrollbar_total_height - thumb_height))
+        
+        # 4. Draw the thumb indicator
+        thumb_rect = pygame.Rect(scrollbar_x, thumb_y, scrollbar_width, thumb_height)
+        pygame.draw.rect(surface, thumb_color, thumb_rect)
+
+    # Draw the menu text
+    for i in range(total_items):
+        # Calculate where this item sits relative to our scroll window
+        relative_index = i - offset
+        
+        # Only draw the item if it falls within the visible range
+        if 0 <= relative_index < max_visible:
+            option = options[i]
+            display_text = f">> {option}" if i == selected else f"   {option}"
+            text_surface = font.render(display_text, True, white)
+            
+            # Position relative to the top of the menu area
+            current_y = start_y + (relative_index * line_spacing)
+            text_rect = text_surface.get_rect(topleft=(start_x, current_y))
+            surface.blit(text_surface, text_rect)
+        
     if is_timer_active and options:
         seconds_left = max(0, math.ceil((AUTO_LAUNCH_DELAY - idle_time_ms) / 1000))
         first_option_name = options[0]
         countdown_text = f"Launching {first_option_name} in {seconds_left} seconds"
         countdown_surface = countdown_font.render(countdown_text, True, white)
         
-
         text_rect = countdown_surface.get_rect(center=(screen_width / 2, screen_height - 130))
         surface.blit(countdown_surface, text_rect)
 
@@ -126,7 +172,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     
-    # --- NEW: Replaced keyboard with pywin32 for input handling ---
+    # Replaced keyboard with pywin32 for input handling
     if current_time - last_input_time > input_cooldown:
         # Check for UP keys
         if any(win32api.GetAsyncKeyState(code) for code in [VK_UP, ord('A'), ord('Z'), ord('S')]):
@@ -160,4 +206,4 @@ while running:
 if slidershim_process:
     slidershim_process.terminate()
 
-pygame.quit
+pygame.quit()
